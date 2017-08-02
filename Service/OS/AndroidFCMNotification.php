@@ -134,8 +134,8 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
 
         // Determine success
         foreach ($this->responses as $response) {
+            $this->logger->info('Received Firebase response: ' . $response->getContent());
             $message = json_decode($response->getContent());
-            $this->logger->info('Received Firebase response: ' . $message);
             if ($message === null || $message->success == 0 || $message->failure > 0) {
                 if ($message == null) {
                     $this->logger->error($response->getContent());
