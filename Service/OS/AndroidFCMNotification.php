@@ -102,20 +102,26 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             $message->getFCMOptions(),
             array("data" => $message->getData())
         );
-        
+
         // Perform the calls (in parallel)
         $this->responses = array();
         $fcmIdentifiers = $message->getFCMIdentifiers();
 
-        if (count($message->getFCMIdentifiers()) == 1) {
+        if (count($message->getFCMIdentifiers()) == 1)
+        {
             $data['to'] = $fcmIdentifiers[0];
+
+            $this->logger->info('Sending single AndroidFCM push notification with data: ' . json_encode($data));
             $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
-        } else {
+        }
+        else
+        {
             // Chunk number of registration IDs according to the maximum allowed by FCM
             $chunks = array_chunk($message->getFCMIdentifiers(), $this->registrationIdMaxCount);
 
             foreach ($chunks as $registrationIDs) {
                 $data['registration_ids'] = $registrationIDs;
+                $this->logger->info('Sending multiple AndroidFCM push notification with data: ' . json_encode($data));
                 $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
             }
         }
@@ -129,6 +135,7 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
         // Determine success
         foreach ($this->responses as $response) {
             $message = json_decode($response->getContent());
+            $this->logger->info('Received Firebase response: ' . $message);
             if ($message === null || $message->success == 0 || $message->failure > 0) {
                 if ($message == null) {
                     $this->logger->error($response->getContent());
