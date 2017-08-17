@@ -36,7 +36,7 @@
             <argument>%rms_push_notifications.android.fcm.api_key%</argument>
             <argument>%rms_push_notifications.android.fcm.use_multi_curl%</argument>
             <argument>%rms_push_notifications.android.timeout%</argument>
-            <argument type="service" id="logger" />
+            <argument type="service" id="monolog.logger.push_notification" />
             <argument>null</argument>
             <tag name="rms_push_notifications.handler" osType="rms_push_notifications.os.android.fcm" />
         </service>
