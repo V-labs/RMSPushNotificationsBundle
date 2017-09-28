@@ -212,12 +212,27 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $messagesCount = count($this->messages);
         for ($currentMessageId = $firstMessageId; $currentMessageId < $messagesCount; $currentMessageId++) {
 
-            $this->logger->notice('Sending AppleNotification with data: ' . $this->messages[$currentMessageId]);
+            $this->logger->notice('--- Sending AppleNotification ---');
+            $this->logger->notice(sprintf('Payload: %s', $this->messages[$currentMessageId]));
 
             // Send the message
             $result = $this->writeApnStream($apnURL, $this->messages[$currentMessageId]);
 
-            $this->logger->notice('Received AppleNotification response: ' . is_array($result) ? json_encode($result) : $result);
+            // Logging response
+            if(is_array($result))
+            {
+                $jsonResult = json_encode($result);
+
+                if(false === $jsonResult){
+                    $this->logger->error(sprintf("Failed to json_decode response: %s", implode($result)));
+                }
+
+                $this->logger->notice(sprintf('Response: %s', $jsonResult));
+            }
+            else
+            {
+                $this->logger->notice(sprintf('Response: %s', (string)$result));
+            }
 
             // Check if there is an error result
             if (is_array($result)) {
@@ -261,9 +276,17 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $null = NULL;
         $streamsReadyToRead = @stream_select($readStreams, $null, $null, 1, 0);
         if ($streamsReadyToRead > 0) {
+
+            $this->logger->notice('--- Received AppleNotification response ---');
+
+            $fread = fread($fp, 6);
+            $this->logger->notice(sprintf('Binary response as Base64: %s', base64_encode($fread)));
+
             // Unpack error response data and set as the result
-            $response = @unpack("Ccommand/Cstatus/Nidentifier", fread($fp, 6));
+            $response = @unpack("Ccommand/Cstatus/Nidentifier", $fread);
             $this->closeApnStream($apnURL);
+        }else{
+            $this->logger->error('Unabled to read the Apple response streams.');
         }
 
         // Will contain true if writing succeeded and no error is returned yet
