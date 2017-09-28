@@ -227,7 +227,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
                     $this->logger->error(sprintf("Failed to json_decode response: %s", implode($result)));
                 }
 
-                $this->logger->notice(sprintf('Response: %s', $jsonResult));
+                $this->logger->notice(sprintf('Response as JSON: %s', $jsonResult));
             }
             else
             {
@@ -271,22 +271,24 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $fp = $this->getApnStream($apnURL);
         $response = (strlen($payload) === @fwrite($fp, $payload, strlen($payload)));
 
+        $this->logger->notice('--- Received AppleNotification response ---');
+
         // Check if there is responsedata to read
         $readStreams = array($fp);
         $null = NULL;
         $streamsReadyToRead = @stream_select($readStreams, $null, $null, 1, 0);
-        if ($streamsReadyToRead > 0) {
-
-            $this->logger->notice('--- Received AppleNotification response ---');
-
+        if ($streamsReadyToRead > 0)
+        {
             $fread = fread($fp, 6);
             $this->logger->notice(sprintf('Binary response as Base64: %s', base64_encode($fread)));
 
             // Unpack error response data and set as the result
             $response = @unpack("Ccommand/Cstatus/Nidentifier", $fread);
             $this->closeApnStream($apnURL);
-        }else{
-            $this->logger->error('Unabled to read the Apple response streams.');
+        }
+        else
+        {
+            $this->logger->notice('No data to read from AppleNotification response (success)');
         }
 
         // Will contain true if writing succeeded and no error is returned yet
