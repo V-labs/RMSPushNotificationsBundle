@@ -8,6 +8,7 @@ use RMS\PushNotificationsBundle\Exception\InvalidMessageTypeException,
     RMS\PushNotificationsBundle\Message\MessageInterface,
     Symfony\Component\Filesystem\Filesystem,
     RMS\PushNotificationsBundle\Service\EventListenerInterface;
+use RMS\PushNotificationsBundle\Exception\PushNotificationSendingFailedException;
 use RMS\PushNotificationsBundle\Service\EventListener;
 
 class AppleNotification implements OSNotificationServiceInterface, EventListenerInterface
@@ -260,10 +261,10 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     /**
      * Write data to the apn stream that is associated with the given apn URL
      *
-     * @param  string            $apnURL
-     * @param  string            $payload
-     * @throws \RuntimeException
-     * @return mixed
+     * @param $apnURL
+     * @param $payload
+     * @return array|bool
+     * @throws \Exception
      */
     protected function writeApnStream($apnURL, $payload)
     {
@@ -280,7 +281,14 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         if ($streamsReadyToRead > 0)
         {
             $fread = fread($fp, 6);
-            $this->logger->notice(sprintf('Binary response as Base64: %s', base64_encode($fread)));
+            $base64Binary = base64_encode($fread);
+
+            $this->logger->notice(sprintf('Binary response as Base64: %s', $base64Binary));
+
+            if(empty($base64Binary))
+            {
+                throw new PushNotificationSendingFailedException("Unable to decode AppleNotification binary error response.");
+            }
 
             // Unpack error response data and set as the result
             $response = @unpack("Ccommand/Cstatus/Nidentifier", $fread);
