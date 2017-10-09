@@ -275,7 +275,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $response = (strlen($payload) === @fwrite($fp, $payload, strlen($payload)));
 
         $this->logger->notice('--- Received AppleNotification response ---');
-        $this->logger->debug($response);
+        $this->logger->debug(sprintf('Raw response: %s', $response));
 
         // Check if there is responsedata to read
         $readStreams = array($fp);
@@ -316,9 +316,10 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     protected function getApnStream($apnURL)
     {
         if (!isset($this->apnStreams[$apnURL])) {
+            $this->logger->debug('Creating a new Stream with APN url %s', $apnURL);
             // No stream found, setup a new stream
             $ctx = $this->getStreamContext();
-            $this->apnStreams[$apnURL] = stream_socket_client($apnURL, $err, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, $ctx);
+            $this->apnStreams[$apnURL] = stream_socket_client($apnURL, $err, $errstr, $this->timeout, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
             if (!$this->apnStreams[$apnURL]) {
                 throw new \RuntimeException("Couldn't connect to APN server. Error no $err: $errstr");
             }
@@ -358,6 +359,9 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     {
         $pem = $this->pemPath;
         $passphrase = $this->passphrase;
+
+        $this->logger->debug('Using .pem path %s', $pem);
+        $this->logger->debug('Using passphrase %s', $passphrase);
 
         // Create cache pem file if needed
         if (!empty($this->pemContent)) {
