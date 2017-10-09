@@ -361,8 +361,8 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $pem = $this->pemPath;
         $passphrase = $this->passphrase;
 
-        $this->logger->debug('Using .pem path %s', $pem);
-        $this->logger->debug('Using passphrase %s', $passphrase);
+        $this->logger->debug(sprintf('Using .pem path %s', $pem));
+        $this->logger->debug(sprintf('Using passphrase %s', $passphrase));
 
         // Create cache pem file if needed
         if (!empty($this->pemContent)) {
