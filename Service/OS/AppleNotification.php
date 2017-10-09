@@ -315,6 +315,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
      */
     protected function getApnStream($apnURL)
     {
+        $this->logger->debug(sprintf('Current APN streams %s', $this->apnStreams));
         if (!isset($this->apnStreams[$apnURL])) {
             $this->logger->debug('Creating a new Stream with APN url %s', $apnURL);
             // No stream found, setup a new stream
