@@ -176,6 +176,8 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
             $apnURL = "ssl://gateway.sandbox.push.apple.com:2195";
         }
 
+        $this->logger->debug(sprintf('Using %s', $apnURL));
+
         $messageId = ++$this->lastMessageId;
 
         if ($message->isMdmMessage()) {
@@ -273,6 +275,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $response = (strlen($payload) === @fwrite($fp, $payload, strlen($payload)));
 
         $this->logger->notice('--- Received AppleNotification response ---');
+        $this->logger->debug($response);
 
         // Check if there is responsedata to read
         $readStreams = array($fp);
