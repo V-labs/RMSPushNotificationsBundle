@@ -317,7 +317,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     {
         $this->logger->debug(sprintf('Current APN streams %s', $this->apnStreams));
         if (!isset($this->apnStreams[$apnURL])) {
-            $this->logger->debug('Creating a new Stream with APN url %s', $apnURL);
+            $this->logger->debug(sprintf('Creating a new Stream with APN url %s', $apnURL));
             // No stream found, setup a new stream
             $ctx = $this->getStreamContext();
             $this->apnStreams[$apnURL] = stream_socket_client($apnURL, $err, $errstr, $this->timeout, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
