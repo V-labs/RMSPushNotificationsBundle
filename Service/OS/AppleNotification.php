@@ -290,6 +290,8 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
 
             if(empty($base64Binary))
             {
+                $this->closeApnStream($apnURL);
+                $this->logger->notice('Empty binary, closed APN stream.');
                 throw new PushNotificationSendingFailedException("Unable to decode AppleNotification binary error response.");
             }
 
@@ -316,11 +318,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     protected function getApnStream($apnURL)
     {
         $this->logger->debug(sprintf('Current APN streams count %s', count($this->apnStreams)));
-        /**
-         * We intentionally create a new stream for every push notification we send, in case of long-life process, keeping
-         * the stream in memory can cause trouble shootings with APNS
-         */
-        //if (!isset($this->apnStreams[$apnURL])) {
+        if (!isset($this->apnStreams[$apnURL])) {
             $this->logger->debug(sprintf('Creating a new Stream with APN url %s', $apnURL));
             // No stream found, setup a new stream
             $ctx = $this->getStreamContext();
@@ -335,7 +333,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
             }
             stream_set_write_buffer($this->apnStreams[$apnURL], 0);
             stream_set_blocking($this->apnStreams[$apnURL], 0);
-        //}
+        }
 
         return $this->apnStreams[$apnURL];
     }
