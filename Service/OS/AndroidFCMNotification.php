@@ -2,6 +2,7 @@
 
 namespace RMS\PushNotificationsBundle\Service\OS;
 
+use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 use RMS\PushNotificationsBundle\Exception\InvalidMessageTypeException,
     RMS\PushNotificationsBundle\Message\AndroidMessage,
@@ -94,10 +95,10 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             throw new InvalidMessageTypeException("Non-FCM messages not supported by the Android FCM sender");
         }
 
-        $headers = array(
-            "Authorization: key=" . $this->apiKey,
-            "Content-Type: application/json",
-        );
+        $headers = [
+            'Authorization' => 'key=' . $this->apiKey,
+            'Content-Type' => 'application/json'
+        ];
         $data = array_merge(
             $message->getFCMOptions(),
             array("data" => $message->getData())
@@ -107,12 +108,18 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
         $this->responses = array();
         $fcmIdentifiers = $message->getFCMIdentifiers();
 
+        $client = new Client();
+
         if (count($message->getFCMIdentifiers()) == 1)
         {
             $data['to'] = $fcmIdentifiers[0];
 
             $this->logger->notice('Sending single AndroidFCM push notification with data: ' . json_encode($data));
-            $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
+
+            $this->responses[] = $client->post($this->apiURL, [
+                'headers' => $headers,
+                'body' => json_encode($data)
+            ]);
         }
         else
         {
@@ -122,7 +129,10 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             foreach ($chunks as $registrationIDs) {
                 $data['registration_ids'] = $registrationIDs;
                 $this->logger->notice('Sending multiple AndroidFCM push notification with data: ' . json_encode($data));
-                $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
+                $this->responses[] = $client->post($this->apiURL, [
+                    'headers' => $headers,
+                    'body' => json_encode($data)
+                ]);
             }
         }
 
@@ -134,11 +144,11 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
 
         // Determine success
         foreach ($this->responses as $response) {
-            $this->logger->notice('Received Firebase response: ' . $response->getContent());
-            $message = json_decode($response->getContent());
+            $this->logger->notice('Received Firebase response: ' . $response->getBody());
+            $message = json_decode($response->getBody());
             if ($message === null || $message->success == 0 || $message->failure > 0) {
                 if ($message == null) {
-                    $this->logger->error($response->getContent());
+                    $this->logger->error($response->getBody());
                 } else {
                     foreach ($message->results as $result) {
                         if (isset($result->error)) {
