@@ -27,6 +27,7 @@ class Configuration implements ConfigurationInterface
         $this->addMac();
         $this->addBlackberry();
         $this->addWindowsphone();
+        $this->addWeb();
 
         return $treeBuilder;
     }
@@ -150,6 +151,32 @@ class Configuration implements ConfigurationInterface
                 arrayNode('windowsphone')->
                     children()->
                         scalarNode("timeout")->defaultValue(5)->end()->
+                    end()->
+                end()->
+            end()
+        ;
+    }
+
+    /**
+     * Android configuration
+     */
+    protected function addWeb()
+    {
+        $this->root->
+            children()->
+                arrayNode("web")->
+                    canBeUnset()->
+                    children()->
+
+                    scalarNode("timeout")->defaultValue(5)->end()->
+
+                    arrayNode("fcm")->
+                        canBeUnset()->
+                        children()->
+                            scalarNode("api_key")->isRequired()->cannotBeEmpty()->end()->
+                                booleanNode("use_multi_curl")->defaultValue(true)->end()->
+                            end()->
+                        end()->
                     end()->
                 end()->
             end()

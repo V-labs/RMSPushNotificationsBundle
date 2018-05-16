@@ -12,4 +12,5 @@ class Types
     const OS_BLACKBERRY = "rms_push_notifications.os.blackberry";
     const OS_WINDOWSMOBILE = "rms_push_notifications.os.windowsmobile";
     const OS_WINDOWSPHONE = "rms_push_notifications.os.windowsphone";
+    const OS_WEB_FCM = "rms_push_notifications.os.web.fcm";
 }

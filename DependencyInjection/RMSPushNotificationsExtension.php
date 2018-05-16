@@ -58,6 +58,10 @@ class RMSPushNotificationsExtension extends Extension
             $this->setWindowsphoneConfig($config);
             $loader->load('windowsphone.xml');
         }
+        if (isset($config["web"])) {
+            $this->setWebConfig($config);
+            $loader->load('web.xml');
+        }
     }
 
     /**
@@ -68,6 +72,7 @@ class RMSPushNotificationsExtension extends Extension
         $this->container->setParameter("rms_push_notifications.android.enabled", false);
         $this->container->setParameter("rms_push_notifications.ios.enabled", false);
         $this->container->setParameter("rms_push_notifications.mac.enabled", false);
+        $this->container->setParameter("rms_push_notifications.web.enabled", false);
     }
 
     /**
@@ -115,6 +120,30 @@ class RMSPushNotificationsExtension extends Extension
         if (isset($config["android"]["fcm"])) {
             $this->container->setParameter("rms_push_notifications.android.fcm.api_key", $config["android"]["fcm"]["api_key"]);
             $this->container->setParameter("rms_push_notifications.android.fcm.use_multi_curl", $config["android"]["fcm"]["use_multi_curl"]);
+        }
+    }
+
+    /**
+     * Sets Android config into container
+     *
+     * @param array $config
+     */
+    protected function setWebConfig(array $config)
+    {
+        $this->container->setParameter("rms_push_notifications.web.enabled", true);
+
+        $timeout = $config["web"]["timeout"];
+        $this->container->setParameter("rms_push_notifications.web.timeout", $timeout);
+
+        // DEFINE PARAMETERS
+        $this->container->setParameter("rms_push_notifications.web.fcm.api_key", null);
+        $this->container->setParameter("rms_push_notifications.web.fcm.use_multi_curl", null);
+
+        // FCM
+        $this->container->setParameter("rms_push_notifications.web.fcm.enabled", isset($config["web"]["fcm"]));
+        if (isset($config["web"]["fcm"])) {
+            $this->container->setParameter("rms_push_notifications.web.fcm.api_key", $config["web"]["fcm"]["api_key"]);
+            $this->container->setParameter("rms_push_notifications.web.fcm.use_multi_curl", $config["web"]["fcm"]["use_multi_curl"]);
         }
     }
 
